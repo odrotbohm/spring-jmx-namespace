@@ -1,0 +1,2 @@
+http\://www.springframework.org/schema/jmx/spring-jmx-3.1.xsd=org/springframework/jmx/config/spring-jmx-3.1.xsd
+http\://www.springframework.org/schema/jmx/spring-jmx.xsd=org/springframework/jmx/config/spring-jmx-3.1.xsd

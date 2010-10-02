@@ -84,7 +84,7 @@ class JmxLoggerBeanDefinitionParser implements BeanDefinitionParser {
                             registerBeanDefinition(toBeRegistered.getName(),
                                     parserContext, source);
 
-                    beans.put(toBeRegistered.getJmxName(levels),
+                    beans.put(toBeRegistered.getJmxName(),
                             new RuntimeBeanReference(defName));
                     alreadyRegistered.add(toBeRegistered);
                 }

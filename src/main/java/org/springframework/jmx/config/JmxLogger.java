@@ -4,6 +4,8 @@ import org.springframework.util.Assert;
 
 
 /**
+ * Value object to capture a JMX exposed logger.
+ * 
  * @author Oliver Gierke
  */
 final class JmxLogger {
@@ -14,6 +16,12 @@ final class JmxLogger {
     private final String group;
 
 
+    /**
+     * Creates a new {@link JmxLogger}.
+     * 
+     * @param name
+     * @param group
+     */
     public JmxLogger(String name, String group) {
 
         Assert.hasText(name);
@@ -22,7 +30,12 @@ final class JmxLogger {
     }
 
 
-    public String getJmxName(int overAllLevel) {
+    /**
+     * Builds the JMX object name to register the logger under.
+     * 
+     * @return
+     */
+    public String getJmxName() {
 
         StringBuilder builder = new StringBuilder(OVERALL_NAME);
         builder.append(":name=").append(name);

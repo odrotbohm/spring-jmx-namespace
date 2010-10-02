@@ -3,6 +3,12 @@ package org.springframework.jmx.config;
 import org.springframework.util.Assert;
 
 
+/**
+ * Candidate to become a JMX exposed logger. Value object to ask it whether it
+ * might serve as group as well.
+ * 
+ * @author Oliver Gierke
+ */
 class Candidate {
 
     public static final Candidate NO_GROUP_CANDIDATE = new Candidate("<NULL>",
@@ -19,6 +25,12 @@ class Candidate {
     private final int level;
 
 
+    /**
+     * Creates a new {@link Candidate}.
+     * 
+     * @param name
+     * @param level
+     */
     public Candidate(String name, int level) {
 
         Assert.hasText(name);
@@ -28,6 +40,8 @@ class Candidate {
 
 
     /**
+     * Returns the name of the candidate.
+     * 
      * @return the name
      */
     public String getName() {
@@ -36,6 +50,11 @@ class Candidate {
     };
 
 
+    /**
+     * Returns whther the {@link Candidate} is a grouping one.
+     * 
+     * @return
+     */
     public boolean isGroupCandidate() {
 
         return this.level == 1;

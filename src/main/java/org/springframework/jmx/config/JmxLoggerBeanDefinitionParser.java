@@ -1,6 +1,8 @@
 package org.springframework.jmx.config;
 
 import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -43,13 +45,18 @@ class JmxLoggerBeanDefinitionParser implements BeanDefinitionParser {
         return result;
     }
 
-    private static class Log4JAutoDiscoveringLoggerBeanDefinitionParser
+    /**
+     * Base class to implement auto discovery of loggers.
+     * 
+     * @author Oliver Gierke
+     */
+    private static abstract class AbstractAutoDiscoveringLoggerBeanDefinitionParser
             implements BeanDefinitionParser {
 
         private final BeanDefinitionBuilder exporterBuilder;
 
 
-        public Log4JAutoDiscoveringLoggerBeanDefinitionParser(
+        public AbstractAutoDiscoveringLoggerBeanDefinitionParser(
                 BeanDefinitionBuilder builder) {
 
             this.exporterBuilder = builder;
@@ -73,15 +80,13 @@ class JmxLoggerBeanDefinitionParser implements BeanDefinitionParser {
             Object source =
                     parserContext.getReaderContext().extractSource(element);
 
-            for (Enumeration<?> e = LogManager.getCurrentLoggers(); e
-                    .hasMoreElements();) {
-                Logger logger = (Logger) e.nextElement();
+            for (String loggerSource : getSources(basePackage)) {
 
                 for (JmxLogger toBeRegistered : selector.getLoggersFor(
-                        logger.getName(), alreadyRegistered)) {
+                        loggerSource, alreadyRegistered)) {
 
                     String defName =
-                            registerBeanDefinition(toBeRegistered.getName(),
+                            registerBeanDefinition(toBeRegistered,
                                     parserContext, source);
 
                     beans.put(toBeRegistered.getJmxName(),
@@ -91,18 +96,68 @@ class JmxLoggerBeanDefinitionParser implements BeanDefinitionParser {
             }
 
             exporterBuilder.addPropertyValue("beans", beans);
-
             return null;
         }
 
 
-        private String registerBeanDefinition(String name,
+        protected static AbstractBeanDefinition getSourcedBeanDefinition(
+                BeanDefinitionBuilder builder, Object source) {
+
+            AbstractBeanDefinition definition = builder.getBeanDefinition();
+            definition.setSource(source);
+            definition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+            return definition;
+        }
+
+
+        protected abstract Iterable<String> getSources(String basePackage);
+
+
+        protected abstract String registerBeanDefinition(JmxLogger logger,
+                ParserContext parserContext, Object source);
+    }
+
+    /**
+     * Log4J based auto discovering logger {@link BeanDefinitionParser}.
+     * 
+     * @author Oliver Gierke
+     */
+    private static class Log4JAutoDiscoveringLoggerBeanDefinitionParser extends
+            AbstractAutoDiscoveringLoggerBeanDefinitionParser {
+
+        public Log4JAutoDiscoveringLoggerBeanDefinitionParser(
+                BeanDefinitionBuilder builder) {
+
+            super(builder);
+        }
+
+
+        @Override
+        protected Iterable<String> getSources(String basePackage) {
+
+            Set<String> sources = new HashSet<String>();
+
+            for (Enumeration<?> e = LogManager.getCurrentLoggers(); e
+                    .hasMoreElements();) {
+                String loggerName = ((Logger) e.nextElement()).getName();
+
+                if (loggerName.startsWith(basePackage)) {
+                    sources.add(loggerName);
+                }
+            }
+            return sources;
+        }
+
+
+        @Override
+        protected String registerBeanDefinition(JmxLogger logger,
                 ParserContext parserContext, Object source) {
 
             BeanDefinitionBuilder builder =
                     BeanDefinitionBuilder
                             .rootBeanDefinition("org.apache.log4j.jmx.LoggerDynamicMBean");
-            builder.addConstructorArgValue(getLoggerBeanDefinition(name, source));
+            builder.addConstructorArgValue(getLoggerBeanDefinition(
+                    logger.getName(), source));
 
             return BeanDefinitionReaderUtils.registerWithGeneratedName(
                     getSourcedBeanDefinition(builder, source),
@@ -121,14 +176,5 @@ class JmxLoggerBeanDefinitionParser implements BeanDefinitionParser {
             return getSourcedBeanDefinition(innerBuilder, source);
         }
 
-
-        private AbstractBeanDefinition getSourcedBeanDefinition(
-                BeanDefinitionBuilder builder, Object source) {
-
-            AbstractBeanDefinition definition = builder.getBeanDefinition();
-            definition.setSource(source);
-            definition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-            return definition;
-        }
     }
 }

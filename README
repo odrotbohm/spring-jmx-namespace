@@ -10,9 +10,14 @@ jmx-logger.xml in the test tree. There you can find a logger like this:
 
 <jmx:logger type="Log4J" name="org.springframework" />
 
-Combined with the <context:mbean-server /> and <context:mbean-exporter />
-this will register the logger for org.springframework as JMX MBean. To
-see it working live simply run the Sample class, and open a JConsole or
-the like, find the LoggerDynamicMBean and alter the log level to DEBUG.
-Pressing Enter in the console should give you a sample DEBUG level
-message then.
+Combined with the <context:mbean-server /> this will register the logger 
+for org.springframework as JMX MBean. Furthermore you can trigger 
+auto-detection of loggers by defining a logger element like so:
+
+<jmx:logger type="Log4J" name="org.springframework" levels="2" />
+
+This would register JMX MBeans for loggers two package levels below 
+org.springframework if existing. To see it working live simply run the 
+Sample class, and open a JConsole or the like, find the LoggerDynamicMBean 
+and alter the log level to DEBUG. Pressing Enter in the console should 
+give you a sample DEBUG level message then.

@@ -12,9 +12,32 @@
 					</xsd:restriction>
 				</xsd:simpleType>
 			</xsd:attribute>
-			<xsd:attribute name="name" type="xsd:string" use="required" />
-			<xsd:attribute name="levels" type="xsd:int" default="0" />
-			<xsd:attribute name="omit-class-loggers" type="xsd:boolean" default="true" />
+			<xsd:attribute name="name" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:documentation>
+						The name of the logger to be exposed. Use levels
+						attribute to enable auto detection of loggers below the configured
+						name.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="levels" type="xsd:int" default="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Configures up to which level loggers shall be
+						detected automatically. If set to null (which is the default) only
+						the logger defined in name attribute will be exposed.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="omit-class-loggers" type="xsd:boolean"	default="true">
+				<xsd:annotation>
+					<xsd:documentation>
+						Determines whether class level loggers shall be
+						omitted.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 

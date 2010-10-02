@@ -2,6 +2,8 @@ package org.springframework.jmx.config;
 
 import static org.junit.Assert.*;
 
+import java.util.List;
+
 import org.apache.log4j.jmx.LoggerDynamicMBean;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,12 +22,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class JmxLoggerBeanDefinitionParserIntegrationTest {
 
     @Autowired
-    LoggerDynamicMBean logger;
+    List<LoggerDynamicMBean> logger;
 
 
     @Test
     public void testname() throws Exception {
 
         assertNotNull(logger);
+        assertFalse(logger.isEmpty());
     }
 }

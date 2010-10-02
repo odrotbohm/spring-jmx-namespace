@@ -7,8 +7,7 @@
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
 	<context:mbean-server />
-	<context:mbean-export />
 	
-	<jmx:logger type="Log4J" name="org.springframework" />
+	<jmx:logger type="Log4J" name="org.springframework" levels="2" />
 
 </beans>

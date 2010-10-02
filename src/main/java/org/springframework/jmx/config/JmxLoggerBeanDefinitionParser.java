@@ -1,8 +1,6 @@
 package org.springframework.jmx.config;
 
 import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -63,26 +61,30 @@ class JmxLoggerBeanDefinitionParser implements BeanDefinitionParser {
 
             String basePackage = element.getAttribute("name");
             int levels = Integer.parseInt(element.getAttribute("levels"));
+            boolean omitClassLoggers =
+                    Boolean.parseBoolean(element
+                            .getAttribute("omit-class-loggers"));
 
-            LoggerSelector selector = new LoggerSelector(basePackage, levels);
-            Set<String> alreadyRegistered = new HashSet<String>();
+            LoggerSelector selector =
+                    new LoggerSelector(basePackage, levels, omitClassLoggers);
+            JmxLoggers alreadyRegistered = new JmxLoggers();
             ManagedMap<String, BeanReference> beans =
                     new ManagedMap<String, BeanReference>();
+            Object source =
+                    parserContext.getReaderContext().extractSource(element);
 
             for (Enumeration<?> e = LogManager.getCurrentLoggers(); e
                     .hasMoreElements();) {
                 Logger logger = (Logger) e.nextElement();
 
-                for (String toBeRegistered : selector.getLoggersFor(
+                for (JmxLogger toBeRegistered : selector.getLoggersFor(
                         logger.getName(), alreadyRegistered)) {
 
                     String defName =
-                            registerBeanDefinition(toBeRegistered,
-                                    parserContext, parserContext
-                                            .getReaderContext()
-                                            .extractSource(e));
+                            registerBeanDefinition(toBeRegistered.getName(),
+                                    parserContext, source);
 
-                    beans.put(getJmxName(toBeRegistered),
+                    beans.put(toBeRegistered.getJmxName(levels),
                             new RuntimeBeanReference(defName));
                     alreadyRegistered.add(toBeRegistered);
                 }
@@ -91,12 +93,6 @@ class JmxLoggerBeanDefinitionParser implements BeanDefinitionParser {
             exporterBuilder.addPropertyValue("beans", beans);
 
             return null;
-        }
-
-
-        private String getJmxName(String loggerName) {
-
-            return String.format("Spring JMX loggers:name=%s", loggerName);
         }
 
 

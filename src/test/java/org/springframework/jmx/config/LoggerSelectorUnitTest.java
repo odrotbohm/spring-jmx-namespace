@@ -21,14 +21,18 @@ public class LoggerSelectorUnitTest {
     public void getLoggers() throws Exception {
 
         LoggerSelector selector =
-                new LoggerSelector(
-                        "org.springframework", 2);
+                new LoggerSelector("org.springframework", 2, true);
 
-        Set<String> result = selector.getLoggersFor(LOGGER_NAME);
+        Set<JmxLogger> result = selector.getLoggersFor(LOGGER_NAME);
 
         assertThat(result.size(), is(3));
-        assertThat(result, hasItem("org.springframework"));
-        assertThat(result, hasItem("org.springframework.jmx"));
-        assertThat(result, hasItem("org.springframework.jmx.config"));
+        assertThat(result, hasItem(new JmxLogger("org.springframework", null)));
+        assertThat(result, hasItem(new JmxLogger("org.springframework.jmx",
+                "org.springframework.jmx")));
+        assertThat(result, hasItem(new JmxLogger(
+                "org.springframework.jmx.config", "org.springframework.jmx")));
+
+        assertTrue(selector.getLoggersFor(LOGGER_NAME, new JmxLoggers(result))
+                .isEmpty());
     }
 }

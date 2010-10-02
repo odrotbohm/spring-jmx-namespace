@@ -14,6 +14,7 @@
 			</xsd:attribute>
 			<xsd:attribute name="name" type="xsd:string" use="required" />
 			<xsd:attribute name="levels" type="xsd:int" default="0" />
+			<xsd:attribute name="omit-class-loggers" type="xsd:boolean" default="true" />
 		</xsd:complexType>
 	</xsd:element>
 

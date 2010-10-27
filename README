@@ -2,8 +2,9 @@ Small JMX namespace to allow setting up logger JMX beans with Spring
 --------------------------------------------------------------------
 
 This library allows exposing loggers to JMX to alter the log level at
-runtime for example. Currently it supports Log4J as actual logging
-runtime only but I am open to add other ones if there's demand.
+runtime for example. Currently it supports Log4J as well as Logback as 
+actual logging runtime only but I am open to add other ones if there's 
+demand.
 
 To get an impression of how you can use the library take a look at
 jmx-logger.xml in the test tree. There you can find a logger like this:

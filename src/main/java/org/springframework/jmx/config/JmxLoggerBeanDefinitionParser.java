@@ -6,9 +6,11 @@ import java.util.Set;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanReference;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.parsing.ReaderContext;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
@@ -17,6 +19,8 @@ import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.jmx.export.annotation.AnnotationMBeanExporter;
 import org.w3c.dom.Element;
+
+import ch.qos.logback.classic.LoggerContext;
 
 
 /**
@@ -34,11 +38,23 @@ class JmxLoggerBeanDefinitionParser implements BeanDefinitionParser {
                 BeanDefinitionBuilder
                         .rootBeanDefinition(AnnotationMBeanExporter.class);
 
-        BeanDefinitionParser delegate =
-                new Log4JAutoDiscoveringLoggerBeanDefinitionParser(builder);
+        String type = element.getAttribute("type");
+        BeanDefinitionParser delegate = null;
+
+        if ("Log4J".equals(type)) {
+            delegate =
+                    new Log4JAutoDiscoveringLoggerBeanDefinitionParser(builder);
+        } else if ("Logback".equals(type)) {
+            delegate =
+                    new LogbackAutoDiscoveringLoggerBeanDefinitionParser(
+                            builder);
+        } else {
+            ReaderContext context = parserContext.getReaderContext();
+            context.error("Unsupported logger!", context.extractSource(element));
+            return null;
+        }
 
         BeanDefinition result = delegate.parse(element, parserContext);
-
         BeanDefinitionReaderUtils.registerWithGeneratedName(
                 builder.getBeanDefinition(), parserContext.getRegistry());
 
@@ -176,5 +192,66 @@ class JmxLoggerBeanDefinitionParser implements BeanDefinitionParser {
             return getSourcedBeanDefinition(innerBuilder, source);
         }
 
+    }
+
+    private static class LogbackAutoDiscoveringLoggerBeanDefinitionParser
+            extends AbstractAutoDiscoveringLoggerBeanDefinitionParser {
+
+        private final LoggerContext context = (LoggerContext) LoggerFactory
+                .getILoggerFactory();
+
+
+        public LogbackAutoDiscoveringLoggerBeanDefinitionParser(
+                BeanDefinitionBuilder builder) {
+
+            super(builder);
+        }
+
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see org.springframework.jmx.config.JmxLoggerBeanDefinitionParser.
+         * AbstractAutoDiscoveringLoggerBeanDefinitionParser
+         * #getSources(java.lang.String)
+         */
+        @Override
+        protected Iterable<String> getSources(String basePackage) {
+
+            Set<String> result = new HashSet<String>();
+
+            for (ch.qos.logback.classic.Logger logger : context.getLoggerList()) {
+                if (logger.getName().startsWith(basePackage)) {
+
+                    result.add(logger.getName());
+                }
+            }
+
+            return result;
+        }
+
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see org.springframework.jmx.config.JmxLoggerBeanDefinitionParser.
+         * AbstractAutoDiscoveringLoggerBeanDefinitionParser
+         * #registerBeanDefinition(org.springframework.jmx.config.JmxLogger,
+         * org.springframework.beans.factory.xml.ParserContext,
+         * java.lang.Object)
+         */
+        @Override
+        protected String registerBeanDefinition(JmxLogger logger,
+                ParserContext parserContext, Object source) {
+
+            BeanDefinitionBuilder builder =
+                    BeanDefinitionBuilder
+                            .rootBeanDefinition("org.springframework.jmx.config.LogbackJmxLogger");
+            builder.addConstructorArgValue(context.getLogger(logger.getName()));
+
+            return BeanDefinitionReaderUtils.registerWithGeneratedName(
+                    getSourcedBeanDefinition(builder, source),
+                    parserContext.getRegistry());
+        }
     }
 }

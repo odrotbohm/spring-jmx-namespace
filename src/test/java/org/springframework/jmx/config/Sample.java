@@ -21,6 +21,7 @@ public class Sample {
 
         ConfigurableApplicationContext context =
                 new ClassPathXmlApplicationContext("jmx-logger.xml");
+        // new ClassPathXmlApplicationContext("logback-logger.xml");
 
         Scanner scanner = new Scanner(System.in);
 
